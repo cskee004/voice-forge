@@ -86,6 +86,3 @@ When released:
 - [Ollama](https://ollama.com/) — local LLM inference
 - [HACS](https://hacs.xyz) — distribution
 
----
-
-*This is a personal family project before a community one. Feature scope and hardware assumptions reflect that.*
