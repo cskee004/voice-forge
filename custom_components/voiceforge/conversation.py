@@ -11,9 +11,10 @@ from homeassistant.components.conversation import (
     ConversationInput,
     ConversationResult,
 )
+from homeassistant.helpers import intent as ha_intent
 
-from .character_manager import CharacterManager, CharacterCard
-from .const import EMERGENCY_RESPONSE, SESSION_IDLE_TTL
+from .character_manager import CharacterCard, CharacterManager
+from .const import DOMAIN, EMERGENCY_RESPONSE, SESSION_IDLE_TTL
 from .llm_client import LLMClient
 from .safety_classifier import check_emergency
 from .template_engine import TemplateEngine
@@ -28,16 +29,34 @@ _LIST_PREFIX_RE = re.compile(r"^\s*[-•]\s+|^\s*\d+\.\s+", re.MULTILINE)
 _MAX_TTS_CHARS = 400
 
 
+async def async_setup_entry(hass, config_entry, async_add_entities) -> None:
+    """HA conversation platform entry point — registers the agent entity."""
+    data = hass.data[DOMAIN][config_entry.entry_id]
+    agent = VoiceForgeConversationAgent(
+        hass=hass,
+        entry_id=config_entry.entry_id,
+        character_manager=data["character_manager"],
+        llm_client=data["llm_client"],
+        template_engine=data["template_engine"],
+        memory_manager=data["memory_manager"],
+    )
+    async_add_entities([agent])
+
+
 class VoiceForgeConversationAgent(ConversationEntity):
+    _attr_should_poll = False
+
     def __init__(
         self,
         hass,
+        entry_id: str,
         character_manager: CharacterManager,
         llm_client: LLMClient,
         template_engine: TemplateEngine,
         memory_manager=None,
     ) -> None:
         self._hass = hass
+        self._entry_id = entry_id
         self._character_manager = character_manager
         self._llm_client = llm_client
         self._template_engine = template_engine
@@ -45,13 +64,26 @@ class VoiceForgeConversationAgent(ConversationEntity):
         self._histories: dict[str, list] = {}
         self._history_timestamps: dict[str, float] = {}
 
+    @property
+    def unique_id(self) -> str:
+        return self._entry_id
+
+    @property
+    def name(self) -> str:
+        return "VoiceForge"
+
+    @property
+    def supported_languages(self) -> list[str]:
+        return ["*"]
+
     async def async_process(self, user_input: ConversationInput) -> ConversationResult:
         self._prune_idle_sessions()
 
-        # Safety first — emergency check runs before anything else
+        lang = getattr(user_input, "language", "en")
+
         if check_emergency(user_input.text):
             _LOGGER.warning("Emergency classifier fired on: %s", user_input.text)
-            return ConversationResult(response=EMERGENCY_RESPONSE)
+            return self._make_result(EMERGENCY_RESPONSE, lang)
 
         character = self._character_manager.get_active_character()
         system_prompt = self._template_engine.render(character, self._hass)
@@ -68,7 +100,6 @@ class VoiceForgeConversationAgent(ConversationEntity):
 
         history.append({"role": "assistant", "content": clean_response})
 
-        # Keep max 20 messages (10 turns) per session
         if len(history) > 20:
             self._histories[conv_id] = history[-20:]
 
@@ -77,7 +108,17 @@ class VoiceForgeConversationAgent(ConversationEntity):
                 self._memory_manager.async_extract(character, messages)
             )
 
-        return ConversationResult(response=clean_response)
+        return self._make_result(clean_response, lang, conv_id)
+
+    def _make_result(
+        self, speech: str, language: str, conversation_id: str | None = None
+    ) -> ConversationResult:
+        intent_response = ha_intent.IntentResponse(language=language)
+        intent_response.async_set_speech(speech)
+        return ConversationResult(
+            response=intent_response,
+            conversation_id=conversation_id,
+        )
 
     def _prune_idle_sessions(self) -> None:
         cutoff = time.time() - SESSION_IDLE_TTL
@@ -93,7 +134,6 @@ class VoiceForgeConversationAgent(ConversationEntity):
         text = text.replace("—", ",").replace("\n", " ")
         text = re.sub(r"\s{2,}", " ", text).strip()
         if len(text) > _MAX_TTS_CHARS:
-            # Trim at last sentence boundary within limit
             trimmed = text[:_MAX_TTS_CHARS]
             last_stop = max(trimmed.rfind("."), trimmed.rfind("?"), trimmed.rfind("!"))
             text = trimmed[: last_stop + 1] if last_stop > 0 else trimmed

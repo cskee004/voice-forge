@@ -32,6 +32,21 @@ class _ConfigFlow:
 
 
 # ---------------------------------------------------------------------------
+# IntentResponse stub — mirrors homeassistant.helpers.intent.IntentResponse
+# ---------------------------------------------------------------------------
+
+class _IntentResponse:
+    """Minimal IntentResponse stub for conversation result assertions."""
+
+    def __init__(self, language="en", intent=None):
+        self.speech: dict = {}
+        self.language = language
+
+    def async_set_speech(self, speech: str, extra_data=None, response_type=None) -> None:
+        self.speech["plain"] = {"speech": speech, "extra_data": extra_data}
+
+
+# ---------------------------------------------------------------------------
 # Stub homeassistant.config_entries — single object shared by _ha and sys.modules
 # ---------------------------------------------------------------------------
 
@@ -47,17 +62,30 @@ _core_stub = MagicMock()
 _core_stub.HomeAssistant = MagicMock
 
 # ---------------------------------------------------------------------------
+# Stub homeassistant.helpers.intent
+# ---------------------------------------------------------------------------
+
+_intent_stub = MagicMock()
+_intent_stub.IntentResponse = _IntentResponse
+
+_helpers_stub = MagicMock()
+_helpers_stub.intent = _intent_stub
+
+# ---------------------------------------------------------------------------
 # Stub homeassistant package — attribute access must return the same objects
-# as sys.modules entries so `from homeassistant import config_entries` works
+# as sys.modules entries so `from homeassistant import x` works
 # ---------------------------------------------------------------------------
 
 _ha = MagicMock()
 _ha.config_entries = _config_entries_stub
 _ha.core = _core_stub
+_ha.helpers = _helpers_stub
 
 sys.modules["homeassistant"] = _ha
 sys.modules["homeassistant.config_entries"] = _config_entries_stub
 sys.modules["homeassistant.core"] = _core_stub
+sys.modules["homeassistant.helpers"] = _helpers_stub
+sys.modules["homeassistant.helpers.intent"] = _intent_stub
 
 # ---------------------------------------------------------------------------
 # Stub conversation types used by conversation.py
@@ -73,8 +101,9 @@ class _ConversationInput:
         self.language = "en"
 
 class _ConversationResult:
-    def __init__(self, response: str):
-        self.response = response
+    def __init__(self, response, conversation_id=None):
+        self.response = response          # _IntentResponse in wired code
+        self.conversation_id = conversation_id
 
 _conv_mod = MagicMock()
 _conv_mod.ConversationEntity = _ConversationEntity
