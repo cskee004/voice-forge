@@ -24,6 +24,27 @@ sys.modules.setdefault("homeassistant.core", MagicMock())
 sys.modules["homeassistant.config_entries"].ConfigEntry = MagicMock
 sys.modules["homeassistant.core"].HomeAssistant = MagicMock
 
+# Stub conversation types used by conversation.py
+class _ConversationEntity:
+    """Minimal base class stub for ConversationEntity."""
+
+class _ConversationInput:
+    def __init__(self, text: str, conversation_id: str = "test-session"):
+        self.text = text
+        self.conversation_id = conversation_id
+        self.language = "en"
+
+class _ConversationResult:
+    def __init__(self, response: str):
+        self.response = response
+
+_conv_mod = MagicMock()
+_conv_mod.ConversationEntity = _ConversationEntity
+_conv_mod.ConversationInput = _ConversationInput
+_conv_mod.ConversationResult = _ConversationResult
+sys.modules["homeassistant.components"] = MagicMock()
+sys.modules["homeassistant.components.conversation"] = _conv_mod
+
 import pytest  # noqa: E402 (must follow sys.modules setup)
 
 
