@@ -5,7 +5,7 @@
 <!-- CLAUDE_STATS_START -->
 #### Claude Code Stats
 
-![sessions: 2](https://img.shields.io/badge/sessions-2-1a1b27?style=for-the-badge&logo=anthropic&logoColor=white) ![API calls: 500](https://img.shields.io/badge/API%20calls-500-7aa2f7?style=for-the-badge&logo=anthropic&logoColor=white) ![tokens: 51.0M](https://img.shields.io/badge/tokens-51.0M-bb9af7?style=for-the-badge&logo=anthropic&logoColor=white) ![thinking time: 6.0m](https://img.shields.io/badge/thinking%20time-6.0m-7dcfff?style=for-the-badge&logo=anthropic&logoColor=white) ![wall clock: 4.3h](https://img.shields.io/badge/wall%20clock-4.3h-3d59a1?style=for-the-badge&logo=anthropic&logoColor=white) ![est. cost: $26.01](https://img.shields.io/badge/est.%20cost-%2426.01-73daca?style=for-the-badge&logo=anthropic&logoColor=white)
+![sessions: 3](https://img.shields.io/badge/sessions-3-1a1b27?style=for-the-badge&logo=anthropic&logoColor=white) ![API calls: 535](https://img.shields.io/badge/API%20calls-535-7aa2f7?style=for-the-badge&logo=anthropic&logoColor=white) ![tokens: 53.5M](https://img.shields.io/badge/tokens-53.5M-bb9af7?style=for-the-badge&logo=anthropic&logoColor=white) ![thinking time: 5.1m](https://img.shields.io/badge/thinking%20time-5.1m-7dcfff?style=for-the-badge&logo=anthropic&logoColor=white) ![wall clock: 5.1h](https://img.shields.io/badge/wall%20clock-5.1h-3d59a1?style=for-the-badge&logo=anthropic&logoColor=white) ![est. cost: $27.25](https://img.shields.io/badge/est.%20cost-%2427.25-73daca?style=for-the-badge&logo=anthropic&logoColor=white)
 <!-- CLAUDE_STATS_END -->
 
 ---
@@ -39,7 +39,7 @@ It plugs into the standard HA Assist pipeline — Whisper handles speech-to-text
 | 27" kiosk display | Dashboard panel with live sprite |
 | M5Stack CoreS3 SE | Satellite voice input + sprite display (v1.1) |
 
-The integration is built for a dedicated local AI stack — not optimised for minimal hardware.
+The integration is built for a dedicated local AI stack
 
 ---
 
