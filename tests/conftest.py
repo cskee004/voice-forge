@@ -11,20 +11,58 @@ package is available.
 import sys
 from unittest.mock import AsyncMock, MagicMock
 
-# --- Stub homeassistant core so package __init__.py can be imported on Windows ---
+# ---------------------------------------------------------------------------
+# ConfigFlow stub — defined first so it can be wired into the module stubs
+# ---------------------------------------------------------------------------
+
+class _ConfigFlow:
+    """Minimal ConfigFlow stub — supports domain= class keyword and flow helpers."""
+
+    def __init_subclass__(cls, domain=None, **kwargs):
+        super().__init_subclass__(**kwargs)
+
+    def async_show_form(self, *, step_id, data_schema=None, errors=None):
+        return {"type": "form", "step_id": step_id, "data_schema": data_schema, "errors": errors or {}}
+
+    def async_create_entry(self, *, title, data):
+        return {"type": "create_entry", "title": title, "data": data}
+
+    def async_abort(self, *, reason):
+        return {"type": "abort", "reason": reason}
+
+
+# ---------------------------------------------------------------------------
+# Stub homeassistant.config_entries — single object shared by _ha and sys.modules
+# ---------------------------------------------------------------------------
+
+_config_entries_stub = MagicMock()
+_config_entries_stub.ConfigEntry = MagicMock
+_config_entries_stub.ConfigFlow = _ConfigFlow
+
+# ---------------------------------------------------------------------------
+# Stub homeassistant.core
+# ---------------------------------------------------------------------------
+
+_core_stub = MagicMock()
+_core_stub.HomeAssistant = MagicMock
+
+# ---------------------------------------------------------------------------
+# Stub homeassistant package — attribute access must return the same objects
+# as sys.modules entries so `from homeassistant import config_entries` works
+# ---------------------------------------------------------------------------
+
 _ha = MagicMock()
-_ha.config_entries = MagicMock()
-_ha.core = MagicMock()
+_ha.config_entries = _config_entries_stub
+_ha.core = _core_stub
 
-sys.modules.setdefault("homeassistant", _ha)
-sys.modules.setdefault("homeassistant.config_entries", MagicMock())
-sys.modules.setdefault("homeassistant.core", MagicMock())
+sys.modules["homeassistant"] = _ha
+sys.modules["homeassistant.config_entries"] = _config_entries_stub
+sys.modules["homeassistant.core"] = _core_stub
 
-# Provide ConfigEntry and HomeAssistant as simple classes so type annotations work
-sys.modules["homeassistant.config_entries"].ConfigEntry = MagicMock
-sys.modules["homeassistant.core"].HomeAssistant = MagicMock
-
+# ---------------------------------------------------------------------------
 # Stub conversation types used by conversation.py
+# ---------------------------------------------------------------------------
+
 class _ConversationEntity:
     """Minimal base class stub for ConversationEntity."""
 
