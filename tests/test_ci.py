@@ -38,6 +38,12 @@ def test_workflow_uses_python_312():
     assert "3.12" in text
 
 
+def test_workflow_pip_cache_uses_requirements_dev():
+    text = WORKFLOW.read_text()
+    assert "cache-dependency-path" in text
+    assert "requirements_dev.txt" in text
+
+
 def test_requirements_dev_exists():
     assert REQUIREMENTS.exists(), f"Missing {REQUIREMENTS}"
 
