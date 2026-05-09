@@ -36,7 +36,7 @@ If something unexpected comes up that is not the current task, add it to Backlog
 
 Newest first. One line per task.
 
-**Task 15** — Sprite generation: `checkpoint` param added to `ComfyUIClient.generate_sprite()` + `_build_workflow()` (TDD, 7/7 green), `scripts/generate_sprites.py` auto-discovers ComfyUI checkpoints, reads per-character/emotion style prompts, generates 24 GIFs into `custom_components/voiceforge/sprites/`. 87/87 total green.
+**Task 15** — Founding four sprites generated: SDXL + Pixel Art XL LoRA, per-frame distinct seeds (42+i*1000), 1024x768->320x240 nearest-exact downscale, lora param + LoraLoader/ImageScale workflow (TDD, 10/10). 24 GIFs committed. 90/90 total green.
 
 **Task 14** — Integration wiring: PLATFORMS=["conversation"], async_setup_entry wires all 6 managers, conversation.py gets platform async_setup_entry + HA entity properties + IntentResponse return type. 16/16 new tests + 86/86 total green.
 

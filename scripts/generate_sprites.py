@@ -100,6 +100,7 @@ async def generate_all(
     cards: list[dict],
     emotion_filter: str | None,
     dry_run: bool,
+    lora: str | None = None,
 ) -> None:
     # Import here so the script can run --list-checkpoints without the full HA env
     sys.path.insert(0, str(REPO_ROOT))
@@ -137,6 +138,7 @@ async def generate_all(
                 output_dir=OUTPUT_DIR,
                 fps=fps,
                 checkpoint=checkpoint,
+                lora=lora,
             )
             if result:
                 print(f"OK -> {result.relative_to(REPO_ROOT)}")
@@ -158,6 +160,7 @@ async def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Generate VoiceForge sprite GIFs via ComfyUI.")
     parser.add_argument("--comfyui-url", default="http://localhost:8188", help="ComfyUI base URL")
     parser.add_argument("--checkpoint", default=None, help="Checkpoint filename (auto-detected if omitted)")
+    parser.add_argument("--lora", default=None, help="LoRA filename to apply (e.g. pixel-art-xl-v1.1.safetensors)")
     parser.add_argument("--list-checkpoints", action="store_true", help="List available checkpoints and exit")
     parser.add_argument("--character", default=None, help="Generate only this character (e.g. aria)")
     parser.add_argument("--emotion", default=None, choices=EMOTIONS, help="Generate only this emotion")
@@ -184,7 +187,7 @@ async def main(argv: list[str] | None = None) -> None:
 
     if args.dry_run:
         checkpoint = args.checkpoint or "pixel_art.safetensors"
-        await generate_all(base_url, checkpoint, cards, args.emotion, dry_run=True)
+        await generate_all(base_url, checkpoint, cards, args.emotion, dry_run=True, lora=args.lora)
         return
 
     try:
@@ -193,7 +196,7 @@ async def main(argv: list[str] | None = None) -> None:
         print(f"ERROR: {exc}")
         sys.exit(1)
 
-    await generate_all(base_url, checkpoint, cards, args.emotion, dry_run=False)
+    await generate_all(base_url, checkpoint, cards, args.emotion, dry_run=False, lora=args.lora)
 
 
 if __name__ == "__main__":

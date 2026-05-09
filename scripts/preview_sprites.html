@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VoiceForge Sprite Preview</title>
+<style>
+  body { background: #0a0a0a; color: #ccc; font-family: monospace; padding: 20px; }
+  h1 { color: #ff4444; letter-spacing: 4px; text-align: center; margin-bottom: 30px; }
+  .character { margin-bottom: 50px; }
+  h2 { letter-spacing: 3px; border-bottom: 1px solid #222; padding-bottom: 8px; margin-bottom: 20px; }
+  .desc { font-size: 12px; font-weight: normal; color: #444; }
+  .emotions { display: flex; gap: 20px; flex-wrap: wrap; }
+  .sprite-card { text-align: center; }
+  .sprite-card img { display: block; border: 1px solid #333; image-rendering: pixelated; }
+  .label { font-size: 11px; color: #555; margin-top: 6px; letter-spacing: 2px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<h1>VOICEFORGE — SPRITE PREVIEW</h1>
+<script>
+const characters = [
+  { id: "aria",     name: "ARIA",     color: "#ff3333", desc: "Adaptive Reasoning Intelligence Architecture" },
+  { id: "malachar", name: "MALACHAR", color: "#cc2222", desc: "Ancient Power of Immeasurable Patience" },
+  { id: "sera",     name: "SERA",     color: "#ccaa44", desc: "Canoness — Battle Sister of the Emperor" },
+  { id: "shepherd", name: "SHEPHERD", color: "#cc8833", desc: "Ancient Wisdom That Has Walked Through Joy and Sorrow" },
+];
+const emotions = ["idle","listening","speaking","alert","pleased","warning"];
+const base = "../custom_components/voiceforge/sprites";
+
+characters.forEach(function(c) {
+  const section = document.createElement("div");
+  section.className = "character";
+
+  const h2 = document.createElement("h2");
+  h2.style.color = c.color;
+  h2.textContent = c.name + " ";
+  const sub = document.createElement("span");
+  sub.className = "desc";
+  sub.textContent = "— " + c.desc;
+  h2.appendChild(sub);
+
+  const row = document.createElement("div");
+  row.className = "emotions";
+
+  emotions.forEach(function(e) {
+    const card = document.createElement("div");
+    card.className = "sprite-card";
+
+    const img = document.createElement("img");
+    img.src = base + "/" + c.id + "/" + e + ".gif?" + Date.now();
+    img.width = 320;
+    img.height = 240;
+    img.alt = c.name + " " + e;
+
+    const label = document.createElement("div");
+    label.className = "label";
+    label.textContent = e;
+
+    card.appendChild(img);
+    card.appendChild(label);
+    row.appendChild(card);
+  });
+
+  section.appendChild(h2);
+  section.appendChild(row);
+  document.body.appendChild(section);
+});
+</script>
+</body>
+</html>

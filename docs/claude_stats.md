@@ -1,21 +1,21 @@
 # VoiceForge — Claude Code Session Stats
 
-*Last updated: 2026-05-09 08:01*
+*Last updated: 2026-05-09 10:20*
 
 ## Summary
 
 | Metric | Value |
 |--------|-------|
 | Sessions | 5 |
-| API calls | 1,165 |
-| User prompts | 703 |
-| Claude thinking time | 9.7m |
-| Wall-clock time | 20.1h |
-| Thinking/wall ratio | 0.8% |
-| Total tokens | 109.7M |
-| Output tokens | 846.2K |
-| Cache read tokens | 105.8M |
-| Estimated API cost | $56.07 |
+| API calls | 1,348 |
+| User prompts | 818 |
+| Claude thinking time | 5.3m |
+| Wall-clock time | 22.4h |
+| Thinking/wall ratio | 0.4% |
+| Total tokens | 134.5M |
+| Output tokens | 944.9K |
+| Cache read tokens | 130.4M |
+| Estimated API cost | $65.31 |
 
 ## Per-Session Breakdown
 
@@ -25,7 +25,7 @@
 | 2026-05-05 | `afb00a3b` | claude-sonnet-4-6 | 305 | 192.9K | 28.2M | 1.4m | 3.8h | $14.39 |
 | 2026-05-06 | `fe10acfc` | claude-sonnet-4-6 | 443 | 399.8K | 41.6M | 11s | 8.6h | $22.32 |
 | 2026-05-08 | `561a29c9` | claude-sonnet-4-6 | 20 | 10.1K | 548.3K | 7s | 5.4h | $0.93 |
-| 2026-05-09 | `2453c506` | claude-sonnet-4-6 | 176 | 82.8K | 12.4M | 4.6m | 1.2h | $5.81 |
+| 2026-05-09 | `2453c506` | claude-sonnet-4-6 | 359 | 181.5K | 37.0M | 8s | 3.5h | $15.04 |
 
 ## Daily Totals
 
@@ -34,7 +34,7 @@
 | 2026-05-05 | 2 | 526 | 353.5K | 4.9m | 4.9h | $27.01 |
 | 2026-05-06 | 1 | 443 | 399.8K | 11s | 8.6h | $22.32 |
 | 2026-05-08 | 1 | 20 | 10.1K | 7s | 5.4h | $0.93 |
-| 2026-05-09 | 1 | 176 | 82.8K | 4.6m | 1.2h | $5.81 |
+| 2026-05-09 | 1 | 359 | 181.5K | 8s | 3.5h | $15.04 |
 
 ---
 

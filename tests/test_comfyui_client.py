@@ -77,7 +77,9 @@ async def test_generate_sprite_returns_path_on_success(tmp_path):
 
     with patch("custom_components.voiceforge.comfyui_client.httpx.AsyncClient", MockClientClass):
         client = ComfyUIClient(base_url="http://localhost:8188")
-        result = await client.generate_sprite("aria", "idle", "glowing red eye", str(tmp_path))
+        result = await client.generate_sprite(
+            "aria", "idle", "glowing red eye", str(tmp_path), frame_count=1
+        )
 
     assert result is not None
     assert result == tmp_path / "aria" / "idle.gif"
@@ -128,7 +130,9 @@ async def test_generate_sprite_polls_until_complete(tmp_path):
     with patch("custom_components.voiceforge.comfyui_client.httpx.AsyncClient", MockClientClass):
         with patch("asyncio.sleep", new_callable=AsyncMock):
             client = ComfyUIClient(base_url="http://localhost:8188")
-            result = await client.generate_sprite("aria", "speaking", "prompt", str(tmp_path))
+            result = await client.generate_sprite(
+                "aria", "speaking", "prompt", str(tmp_path), frame_count=1
+            )
 
     assert result is not None
     assert mock_client.get.call_count >= 2  # at least two history polls
@@ -148,48 +152,47 @@ async def test_output_saved_at_correct_path(tmp_path):
 
     with patch("custom_components.voiceforge.comfyui_client.httpx.AsyncClient", MockClientClass):
         client = ComfyUIClient(base_url="http://localhost:8188")
-        result = await client.generate_sprite("sera", "warning", "armored face", str(tmp_path))
+        result = await client.generate_sprite(
+            "sera", "warning", "armored face", str(tmp_path), frame_count=1
+        )
 
     assert result == tmp_path / "sera" / "warning.gif"
     assert (tmp_path / "sera" / "warning.gif").exists()
 
 
 async def test_gif_assembled_from_multiple_frames(tmp_path):
-    """Multiple PNG frames are assembled into one animated GIF."""
-    prompt_id = "frames123"
+    """3 separate per-frame POST calls produce a 3-frame animated GIF."""
     png = _minimal_png()
+    frame_count = 3
 
-    history = {
-        prompt_id: {
-            "outputs": {
-                "9": {
-                    "images": [
-                        {"filename": "f0.png", "subfolder": "", "type": "output"},
-                        {"filename": "f1.png", "subfolder": "", "type": "output"},
-                        {"filename": "f2.png", "subfolder": "", "type": "output"},
-                    ]
-                }
-            }
-        }
-    }
+    # Each frame: 1 POST, 1 history GET (done), 1 view GET
+    get_responses = []
+    for i in range(frame_count):
+        pid = f"frame{i}"
+        get_responses.append(_http_response(json_data=_complete_history(pid, f"f{i}.png")))
+        get_responses.append(_http_response(content=png))
+
+    post_call = [0]
+    async def rotating_post(url, json=None, **kwargs):
+        pid = f"frame{post_call[0]}"
+        post_call[0] += 1
+        return _http_response(json_data={"prompt_id": pid})
 
     MockClientClass, mock_client = _make_mock_client(
-        post_json={"prompt_id": prompt_id},
-        get_responses=[
-            _http_response(json_data=history),
-            _http_response(content=png),  # frame 0
-            _http_response(content=png),  # frame 1
-            _http_response(content=png),  # frame 2
-        ],
+        post_json={},
+        get_responses=get_responses,
     )
+    mock_client.post = AsyncMock(side_effect=rotating_post)
 
     with patch("custom_components.voiceforge.comfyui_client.httpx.AsyncClient", MockClientClass):
         client = ComfyUIClient(base_url="http://localhost:8188")
-        result = await client.generate_sprite("aria", "speaking", "prompt", str(tmp_path))
+        result = await client.generate_sprite(
+            "aria", "speaking", "prompt", str(tmp_path), frame_count=frame_count
+        )
 
     assert result is not None
-    # 3 view calls (one per frame) + 1 history call = 4 total GET calls
-    assert mock_client.get.call_count == 4
+    assert mock_client.post.call_count == frame_count       # one POST per frame
+    assert mock_client.get.call_count == frame_count * 2   # history + view per frame
 
 
 async def test_custom_checkpoint_used_in_workflow(tmp_path):
@@ -220,3 +223,125 @@ async def test_custom_checkpoint_used_in_workflow(tmp_path):
 
     loader = captured_payload["prompt"]["4"]
     assert loader["inputs"]["ckpt_name"] == "my_pixel_model.safetensors"
+
+
+async def test_lora_workflow_includes_lora_loader_and_image_scale(tmp_path):
+    """When a LoRA is given: LoraLoader node present, latent is 1024x768, ImageScale downsamples to 320x240."""
+    prompt_id = "lora123"
+    png = _minimal_png()
+    captured_payload = {}
+
+    async def capture_post(url, json=None, **kwargs):
+        captured_payload.update(json or {})
+        return _http_response(json_data={"prompt_id": prompt_id})
+
+    MockClientClass, mock_client = _make_mock_client(
+        post_json={"prompt_id": prompt_id},
+        get_responses=[
+            _http_response(json_data=_complete_history(prompt_id)),
+            _http_response(content=png),
+        ],
+    )
+    mock_client.post = AsyncMock(side_effect=capture_post)
+
+    with patch("custom_components.voiceforge.comfyui_client.httpx.AsyncClient", MockClientClass):
+        client = ComfyUIClient(base_url="http://localhost:8188")
+        await client.generate_sprite(
+            "aria", "idle", "glowing red eye", str(tmp_path),
+            checkpoint="sd_xl_base.safetensors",
+            lora="pixel-art-xl-v1.1.safetensors",
+        )
+
+    nodes = captured_payload["prompt"]
+    # LoraLoader must be present
+    lora_nodes = [n for n in nodes.values() if n["class_type"] == "LoraLoader"]
+    assert len(lora_nodes) == 1
+    assert lora_nodes[0]["inputs"]["lora_name"] == "pixel-art-xl-v1.1.safetensors"
+    # Latent image must be SDXL resolution
+    latent_nodes = [n for n in nodes.values() if n["class_type"] == "EmptyLatentImage"]
+    assert latent_nodes[0]["inputs"]["width"] == 1024
+    assert latent_nodes[0]["inputs"]["height"] == 768
+    # ImageScale must downscale to 320x240 with nearest-exact
+    scale_nodes = [n for n in nodes.values() if n["class_type"] == "ImageScale"]
+    assert len(scale_nodes) == 1
+    assert scale_nodes[0]["inputs"]["width"] == 320
+    assert scale_nodes[0]["inputs"]["height"] == 240
+    assert scale_nodes[0]["inputs"]["upscale_method"] == "nearest-exact"
+
+
+async def test_no_lora_workflow_unchanged(tmp_path):
+    """Without a LoRA the original SD 1.5 workflow is used (no LoraLoader, no ImageScale)."""
+    prompt_id = "nolora123"
+    png = _minimal_png()
+    captured_payload = {}
+
+    async def capture_post(url, json=None, **kwargs):
+        captured_payload.update(json or {})
+        return _http_response(json_data={"prompt_id": prompt_id})
+
+    MockClientClass, mock_client = _make_mock_client(
+        post_json={"prompt_id": prompt_id},
+        get_responses=[
+            _http_response(json_data=_complete_history(prompt_id)),
+            _http_response(content=png),
+        ],
+    )
+    mock_client.post = AsyncMock(side_effect=capture_post)
+
+    with patch("custom_components.voiceforge.comfyui_client.httpx.AsyncClient", MockClientClass):
+        client = ComfyUIClient(base_url="http://localhost:8188")
+        await client.generate_sprite("aria", "idle", "glowing red eye", str(tmp_path))
+
+    nodes = captured_payload["prompt"]
+    assert not any(n["class_type"] == "LoraLoader" for n in nodes.values())
+    assert not any(n["class_type"] == "ImageScale" for n in nodes.values())
+    latent = next(n for n in nodes.values() if n["class_type"] == "EmptyLatentImage")
+    assert latent["inputs"]["width"] == 320
+    assert latent["inputs"]["height"] == 240
+
+
+async def test_each_frame_uses_distinct_seed(tmp_path):
+    """Each frame is submitted as a separate workflow with seed = 42 + frame_index * 1000."""
+    frame_count = 3
+    png = _minimal_png()
+    seeds_used = []
+
+    call_count = 0
+
+    async def capture_post(url, json=None, **kwargs):
+        nonlocal call_count
+        prompt_id = f"frame{call_count}"
+        call_count += 1
+        nodes = (json or {}).get("prompt", {})
+        sampler = next((n for n in nodes.values() if n.get("class_type") == "KSampler"), None)
+        if sampler:
+            seeds_used.append(sampler["inputs"]["seed"])
+        return _http_response(json_data={"prompt_id": prompt_id})
+
+    def make_get_side_effect():
+        # Each frame: one history poll (done) + one view download
+        responses = []
+        for i in range(frame_count):
+            pid = f"frame{i}"
+            responses.append(_http_response(json_data=_complete_history(pid, f"f{i}.png")))
+            responses.append(_http_response(content=png))
+        return responses
+
+    MockClientClass, mock_client = _make_mock_client(
+        post_json={},
+        get_responses=make_get_side_effect(),
+    )
+    mock_client.post = AsyncMock(side_effect=capture_post)
+
+    with patch("custom_components.voiceforge.comfyui_client.httpx.AsyncClient", MockClientClass):
+        client = ComfyUIClient(base_url="http://localhost:8188")
+        result = await client.generate_sprite(
+            "aria", "idle", "glowing red eye", str(tmp_path),
+            frame_count=frame_count,
+        )
+
+    assert result is not None
+    assert mock_client.post.call_count == frame_count
+    assert len(seeds_used) == frame_count
+    # Each frame must use a distinct seed spaced 1000 apart
+    assert seeds_used == [42 + i * 1000 for i in range(frame_count)]
