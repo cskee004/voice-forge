@@ -190,3 +190,33 @@ async def test_gif_assembled_from_multiple_frames(tmp_path):
     assert result is not None
     # 3 view calls (one per frame) + 1 history call = 4 total GET calls
     assert mock_client.get.call_count == 4
+
+
+async def test_custom_checkpoint_used_in_workflow(tmp_path):
+    """Custom checkpoint name propagates into the submitted workflow."""
+    prompt_id = "ckpt123"
+    png = _minimal_png()
+    captured_payload = {}
+
+    async def capture_post(url, json=None, **kwargs):
+        captured_payload.update(json or {})
+        return _http_response(json_data={"prompt_id": prompt_id})
+
+    MockClientClass, mock_client = _make_mock_client(
+        post_json={"prompt_id": prompt_id},
+        get_responses=[
+            _http_response(json_data=_complete_history(prompt_id)),
+            _http_response(content=png),
+        ],
+    )
+    mock_client.post = AsyncMock(side_effect=capture_post)
+
+    with patch("custom_components.voiceforge.comfyui_client.httpx.AsyncClient", MockClientClass):
+        client = ComfyUIClient(base_url="http://localhost:8188")
+        await client.generate_sprite(
+            "aria", "idle", "glowing red eye", str(tmp_path),
+            checkpoint="my_pixel_model.safetensors",
+        )
+
+    loader = captured_payload["prompt"]["4"]
+    assert loader["inputs"]["ckpt_name"] == "my_pixel_model.safetensors"

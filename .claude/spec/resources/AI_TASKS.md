@@ -36,6 +36,8 @@ If something unexpected comes up that is not the current task, add it to Backlog
 
 Newest first. One line per task.
 
+**Task 15** — Sprite generation: `checkpoint` param added to `ComfyUIClient.generate_sprite()` + `_build_workflow()` (TDD, 7/7 green), `scripts/generate_sprites.py` auto-discovers ComfyUI checkpoints, reads per-character/emotion style prompts, generates 24 GIFs into `custom_components/voiceforge/sprites/`. 87/87 total green.
+
 **Task 14** — Integration wiring: PLATFORMS=["conversation"], async_setup_entry wires all 6 managers, conversation.py gets platform async_setup_entry + HA entity properties + IntentResponse return type. 16/16 new tests + 86/86 total green.
 
 **Task 13** — Four founding character YAML cards installed: ARIA (8ex), SERA (8ex), MALACHAR (8ex), SHEPHERD (9ex). All 4/4 load against CARD_SCHEMA. install_characters.py + validate_characters.py scripts added.

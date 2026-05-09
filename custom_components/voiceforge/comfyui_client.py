@@ -39,11 +39,12 @@ class ComfyUIClient:
         base_image: bytes | None = None,
         fps: int = 8,
         frame_count: int = 6,
+        checkpoint: str = "pixel_art.safetensors",
     ) -> Path | None:
         """Generate an animated GIF sprite. Returns the saved Path or None on failure."""
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
-                workflow = _build_workflow(style_prompt, emotion, frame_count)
+                workflow = _build_workflow(style_prompt, emotion, frame_count, checkpoint)
                 prompt_id = await self._submit(client, workflow)
                 images = await self._poll_until_done(client, prompt_id)
                 frames = await self._download_frames(client, images)
@@ -102,13 +103,18 @@ class ComfyUIClient:
         return frames
 
 
-def _build_workflow(style_prompt: str, emotion: str, frame_count: int) -> dict:
+def _build_workflow(
+    style_prompt: str,
+    emotion: str,
+    frame_count: int,
+    checkpoint: str = "pixel_art.safetensors",
+) -> dict:
     modifier = _EMOTION_MODIFIERS.get(emotion, "")
     full_prompt = f"{style_prompt}, {modifier}" if modifier else style_prompt
     return {
         "4": {
             "class_type": "CheckpointLoaderSimple",
-            "inputs": {"ckpt_name": "pixel_art.safetensors"},
+            "inputs": {"ckpt_name": checkpoint},
         },
         "5": {
             "class_type": "EmptyLatentImage",
