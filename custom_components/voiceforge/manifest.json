@@ -1,0 +1,13 @@
+{
+  "domain": "voiceforge",
+  "name": "VoiceForge",
+  "version": "1.0.0",
+  "documentation": "https://github.com/cskee004/voiceforge",
+  "issue_tracker": "https://github.com/cskee004/voiceforge/issues",
+  "dependencies": [],
+  "codeowners": ["@cskee004"],
+  "requirements": ["openai>=1.0.0", "pillow>=10.0.0", "tiktoken>=0.7.0"],
+  "iot_class": "local_polling",
+  "config_flow": true,
+  "homeassistant": "2024.6.0"
+}

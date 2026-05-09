@@ -1,0 +1,33 @@
+{
+  "config": {
+    "step": {
+      "llm": {
+        "title": "LLM Connection",
+        "data": {
+          "endpoint": "Endpoint URL",
+          "model": "Model name",
+          "api_key": "API key"
+        }
+      },
+      "character": {
+        "title": "Active Character",
+        "data": {
+          "active_character": "Character"
+        }
+      },
+      "household": {
+        "title": "Household",
+        "data": {
+          "household_members": "Household members",
+          "wake_time": "Wake time",
+          "school_schedule": "School schedule",
+          "parent_notify_entity": "Parent notification entity"
+        }
+      },
+      "pipeline": {
+        "title": "Pipeline",
+        "description": "Assign VoiceForge to your Assist pipeline in Settings → Voice assistants."
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+# Runtime deps (mirrors manifest.json requirements)
+openai>=1.0.0
+Pillow>=10.0.0
+tiktoken>=0.7.0
+httpx>=0.24.0
+
+# Schema validation
+voluptuous>=0.13.0
+PyYAML>=6.0
+
+# Test framework
+pytest>=7.4
+pytest-asyncio>=0.23
+pytest-cov>=4.0
+
+# Optional: full HA component test fixtures (Linux CI only)
+# pytest-homeassistant-custom-component
