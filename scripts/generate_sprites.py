@@ -139,13 +139,13 @@ async def generate_all(
                 checkpoint=checkpoint,
             )
             if result:
-                print(f"OK → {result.relative_to(REPO_ROOT)}")
+                print(f"OK -> {result.relative_to(REPO_ROOT)}")
                 ok += 1
             else:
                 print("FAILED (check ComfyUI logs)")
 
     if not dry_run:
-        print(f"\nDone: {ok}/{total} sprites generated → {OUTPUT_DIR.relative_to(REPO_ROOT)}")
+        print(f"\nDone: {ok}/{total} sprites generated -> {OUTPUT_DIR.relative_to(REPO_ROOT)}")
     else:
         print(f"\n[DRY RUN] Would generate {total} sprites.")
 
