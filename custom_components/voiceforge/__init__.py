@@ -35,7 +35,7 @@ from .template_engine import TemplateEngine
 PLATFORMS: list[str] = ["conversation"]
 
 _SPRITE_SRC = Path(__file__).parent / "sprites"
-_PANEL_DIR = Path(__file__).parent.parent.parent / "www" / "voiceforge-panel"
+_PANEL_DIR = Path(__file__).parent / "www"
 
 
 # ---------------------------------------------------------------------------
