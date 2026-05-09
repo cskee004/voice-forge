@@ -36,6 +36,8 @@ If something unexpected comes up that is not the current task, add it to Backlog
 
 Newest first. One line per task.
 
+**Task 16** — Dashboard Panel: HA sidebar panel via `panel_custom.async_register_panel` + static `/voiceforge-panel` path; `ws_get_state` + `ws_switch_character` WebSocket commands; `voiceforge-panel.js` web component (shadow DOM, character grid, message board, memory viewer collapsed, live sprite swap on `voiceforge_emotion_change`); `get_all_characters()` added to CharacterManager. 7/7 new tests + 97/97 total green.
+
 **Task 15** — Founding four sprites generated: SDXL + Pixel Art XL LoRA, per-frame distinct seeds (42+i*1000), 1024x768->320x240 nearest-exact downscale, lora param + LoraLoader/ImageScale workflow (TDD, 10/10). 24 GIFs committed. 90/90 total green.
 
 **Task 14** — Integration wiring: PLATFORMS=["conversation"], async_setup_entry wires all 6 managers, conversation.py gets platform async_setup_entry + HA entity properties + IntentResponse return type. 16/16 new tests + 86/86 total green.

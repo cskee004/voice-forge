@@ -140,6 +140,10 @@ class CharacterManager:
             if card:
                 self._library[card.id] = card
 
+    def get_all_characters(self) -> list[CharacterCard]:
+        """Return all loaded character cards."""
+        return list(self._library.values())
+
     def get_active_character(self) -> CharacterCard:
         """Return the active character, falling back to ARIA if needed."""
         if self._active_id and self._active_id in self._library:

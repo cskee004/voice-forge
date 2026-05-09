@@ -2,6 +2,13 @@ import asyncio
 import shutil
 from pathlib import Path
 
+import voluptuous as vol
+from homeassistant.components.frontend import async_remove_panel
+from homeassistant.components.panel_custom import async_register_panel
+from homeassistant.components.websocket_api import (
+    async_register_command,
+    websocket_command,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
@@ -27,8 +34,52 @@ from .template_engine import TemplateEngine
 
 PLATFORMS: list[str] = ["conversation"]
 
-# Source: bundled sprites shipped with the integration
 _SPRITE_SRC = Path(__file__).parent / "sprites"
+_PANEL_DIR = Path(__file__).parent.parent.parent / "www" / "voiceforge-panel"
+
+
+# ---------------------------------------------------------------------------
+# WebSocket command handlers (decorated at module load time)
+# ---------------------------------------------------------------------------
+
+@websocket_command({vol.Required("type"): "voiceforge/get_state"})
+def ws_get_state(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Return active character and full character list."""
+    entry_data = _get_entry_data(hass)
+    if entry_data is None:
+        connection.send_error(msg["id"], "not_setup", "VoiceForge not configured")
+        return
+    char_mgr = entry_data["character_manager"]
+    active = char_mgr.get_active_character()
+    characters = [
+        {"id": c.id, "name": c.name, "description": c.description}
+        for c in char_mgr.get_all_characters()
+    ]
+    connection.send_result(msg["id"], {
+        "active_character_id": active.id if active else None,
+        "characters": characters,
+    })
+
+
+@websocket_command({
+    vol.Required("type"): "voiceforge/switch_character",
+    vol.Required("character_id"): str,
+})
+def ws_switch_character(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Switch the active character."""
+    entry_data = _get_entry_data(hass)
+    if entry_data is None:
+        connection.send_error(msg["id"], "not_setup", "VoiceForge not configured")
+        return
+    char_id = msg["character_id"]
+    entry_data["character_manager"].switch_character(char_id)
+    connection.send_result(msg["id"], {"active_character_id": char_id})
+
+
+def _get_entry_data(hass: HomeAssistant) -> dict | None:
+    for data in hass.data.get(DOMAIN, {}).values():
+        return data
+    return None
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -68,6 +119,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "template_engine": template_engine,
     }
 
+    hass.http.register_static_path("/voiceforge-panel", str(_PANEL_DIR))
+    await async_register_panel(
+        hass,
+        webcomponent_name="voiceforge-panel",
+        sidebar_title="VoiceForge",
+        sidebar_icon="mdi:robot-excited",
+        frontend_url_path="voiceforge",
+        module_url="/voiceforge-panel/voiceforge-panel.js",
+        config_panel_domain=DOMAIN,
+    )
+    async_register_command(hass, ws_get_state)
+    async_register_command(hass, ws_switch_character)
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
@@ -76,6 +140,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unloaded:
         hass.data[DOMAIN].pop(entry.entry_id, None)
+        async_remove_panel(hass, "voiceforge")
     return unloaded
 
 

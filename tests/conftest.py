@@ -112,6 +112,38 @@ _conv_mod.ConversationResult = _ConversationResult
 sys.modules["homeassistant.components"] = MagicMock()
 sys.modules["homeassistant.components.conversation"] = _conv_mod
 
+# ---------------------------------------------------------------------------
+# Stub homeassistant.components.panel_custom
+# ---------------------------------------------------------------------------
+
+_panel_custom_stub = MagicMock()
+_panel_custom_stub.async_register_panel = AsyncMock()
+sys.modules["homeassistant.components.panel_custom"] = _panel_custom_stub
+
+# ---------------------------------------------------------------------------
+# Stub homeassistant.components.frontend (panel removal)
+# ---------------------------------------------------------------------------
+
+_frontend_stub = MagicMock()
+_frontend_stub.async_remove_panel = MagicMock()
+sys.modules["homeassistant.components.frontend"] = _frontend_stub
+
+# ---------------------------------------------------------------------------
+# Stub homeassistant.components.websocket_api
+# ---------------------------------------------------------------------------
+
+def _ws_command_factory(schema):
+    """Store the schema on the decorated function; return it unchanged."""
+    def decorator(fn):
+        fn._ws_schema = schema
+        return fn
+    return decorator
+
+_ws_api_stub = MagicMock()
+_ws_api_stub.websocket_command = _ws_command_factory
+_ws_api_stub.async_register_command = MagicMock()
+sys.modules["homeassistant.components.websocket_api"] = _ws_api_stub
+
 import pytest  # noqa: E402 (must follow sys.modules setup)
 
 

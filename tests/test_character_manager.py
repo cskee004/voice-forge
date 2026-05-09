@@ -81,3 +81,19 @@ def test_switch_character_updates_active_character(tmp_path):
 
     manager.switch_character("sera")
     assert manager.get_active_character().id == "sera"
+
+
+def test_get_all_characters_returns_loaded_library(tmp_path):
+    """get_all_characters() returns every card loaded by load_all()."""
+    aria_data = {**VALID_CARD, "id": "aria", "name": "ARIA"}
+    sera_data = {**VALID_CARD, "id": "sera", "name": "SERA"}
+    _write_yaml(tmp_path / "aria.yaml", aria_data)
+    _write_yaml(tmp_path / "sera.yaml", sera_data)
+
+    manager = CharacterManager(str(tmp_path))
+    manager.load_all()
+
+    cards = manager.get_all_characters()
+    assert len(cards) == 2
+    ids = {c.id for c in cards}
+    assert ids == {"aria", "sera"}
