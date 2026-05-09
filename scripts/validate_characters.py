@@ -2,6 +2,20 @@
 
 from pathlib import Path
 import sys
+from unittest.mock import AsyncMock, MagicMock
+
+# Stub HA so the voiceforge package __init__.py can be imported without
+# homeassistant installed (CI environment, dev machines, etc.)
+_mock = MagicMock()
+_mock.async_register_panel = AsyncMock()
+for _mod in (
+    "homeassistant", "homeassistant.core", "homeassistant.config_entries",
+    "homeassistant.components", "homeassistant.components.conversation",
+    "homeassistant.components.frontend", "homeassistant.components.panel_custom",
+    "homeassistant.components.websocket_api",
+    "homeassistant.helpers", "homeassistant.helpers.intent",
+):
+    sys.modules.setdefault(_mod, _mock)
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
