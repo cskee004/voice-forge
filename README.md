@@ -30,19 +30,6 @@ It plugs into the standard HA Assist pipeline — Whisper handles speech-to-text
 
 ---
 
-## Hardware stack
-
-| Component | Role |
-|-----------|------|
-| Raspberry Pi 4 | Runs Home Assistant |
-| Windows PC (RTX 3080) | Runs Ollama, ComfyUI, faster-whisper |
-| 27" kiosk display | Dashboard panel with live sprite |
-| M5Stack CoreS3 SE | Satellite voice input + sprite display (v1.1) |
-
-The integration is built for a dedicated local AI stack
-
----
-
 ## Installation
 
 > **Status: in active development.** Not yet available in HACS. See [current build status](#status) below.
