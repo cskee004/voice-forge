@@ -36,6 +36,8 @@ If something unexpected comes up that is not the current task, add it to Backlog
 
 Newest first. One line per task.
 
+**Task 18** — Recovered live-debug fixes from migrated install: `template_engine._sanitize` coerces non-strings (YAML `- k: v` items parse as dicts), `conversation.supported_languages` returns `MATCH_ALL` (string, not list), `__init__.py` switches to `async_register_static_paths` + `StaticPathConfig` and pauses sprite copy. 4 new tests + 4 sprite tests skipped while disabled. 107 passed, 4 skipped.
+
 **Task 17** — CI/CD: `.github/workflows/ci.yml` runs pytest --cov + `validate_characters.py` on push/PR to main and task/** branches; `requirements_dev.txt` covers all runtime + test deps. 9/9 new tests + 106/106 total green.
 
 **Task 16** — Dashboard Panel: HA sidebar panel via `panel_custom.async_register_panel` + static `/voiceforge-panel` path; `ws_get_state` + `ws_switch_character` WebSocket commands; `voiceforge-panel.js` web component (shadow DOM, character grid, message board, memory viewer collapsed, live sprite swap on `voiceforge_emotion_change`); `get_all_characters()` added to CharacterManager. 7/7 new tests + 97/97 total green.

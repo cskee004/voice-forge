@@ -35,6 +35,8 @@ def _make_hass(config_dir: Path) -> MagicMock:
     hass.config_entries = MagicMock()
     hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=None)
     hass.config_entries.async_unload_platforms = AsyncMock(return_value=True)
+    hass.http = MagicMock()
+    hass.http.async_register_static_paths = AsyncMock(return_value=None)
     return hass
 
 
@@ -71,6 +73,13 @@ async def test_async_setup_entry_returns_true(tmp_path):
     assert result is True
 
 
+_SPRITE_COPY_DISABLED = (
+    "Sprite copy disabled in async_setup_entry until edge device is ready "
+    "to consume them. Re-enable by uncommenting `await _copy_sprites(hass)`."
+)
+
+
+@pytest.mark.skip(reason=_SPRITE_COPY_DISABLED)
 async def test_sprites_copied_when_dest_missing(tmp_path):
     src = tmp_path / "sprites_src"
     src.mkdir()
@@ -89,6 +98,7 @@ async def test_sprites_copied_when_dest_missing(tmp_path):
     assert (dest / "aria" / "idle.gif").exists()
 
 
+@pytest.mark.skip(reason=_SPRITE_COPY_DISABLED)
 async def test_sprites_skipped_when_dest_exists(tmp_path):
     src = tmp_path / "sprites_src"
     src.mkdir()
@@ -111,6 +121,7 @@ async def test_sprites_skipped_when_dest_exists(tmp_path):
     assert sentinel.read_text() == "do not overwrite"
 
 
+@pytest.mark.skip(reason=_SPRITE_COPY_DISABLED)
 async def test_sprites_skipped_when_src_missing(tmp_path):
     """No crash when bundled sprites directory doesn't exist (e.g., dev environment)."""
     hass = _make_hass(tmp_path)
@@ -120,6 +131,7 @@ async def test_sprites_skipped_when_src_missing(tmp_path):
     assert result is True
 
 
+@pytest.mark.skip(reason=_SPRITE_COPY_DISABLED)
 async def test_copy_runs_in_executor(tmp_path):
     """The copy is dispatched to a thread-pool executor, not run on the event loop."""
     src = tmp_path / "sprites_src"
@@ -223,13 +235,15 @@ async def test_unload_removes_entry_data(tmp_path):
 # ---------------------------------------------------------------------------
 
 async def test_panel_static_path_registered(tmp_path):
-    """Static panel files must be served under /voiceforge-panel."""
+    """Static panel files must be served under /voiceforge-panel via the new API."""
     hass = _make_hass(tmp_path)
     with patch("custom_components.voiceforge._SPRITE_SRC", tmp_path / "no_sprites"):
         await async_setup_entry(hass, _make_entry())
 
-    registered = [c[0][0] for c in hass.http.register_static_path.call_args_list]
-    assert "/voiceforge-panel" in registered
+    hass.http.async_register_static_paths.assert_called_once()
+    configs = hass.http.async_register_static_paths.call_args[0][0]
+    url_paths = [c.url_path for c in configs]
+    assert "/voiceforge-panel" in url_paths
 
 
 async def test_panel_registered_in_sidebar(tmp_path):

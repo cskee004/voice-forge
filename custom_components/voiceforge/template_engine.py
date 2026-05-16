@@ -68,8 +68,15 @@ def _count_tokens(text: str) -> int:
     return len(_ENCODER.encode(text))
 
 
-def _sanitize(text: str) -> str:
-    """Break Jinja2/HA template syntax in card-sourced text."""
+def _sanitize(text) -> str:
+    """Break Jinja2/HA template syntax in card-sourced text.
+
+    Coerces non-strings — YAML `- key: value` parses items as dicts.
+    """
+    if isinstance(text, dict):
+        text = ", ".join(f"{k}: {v}" for k, v in text.items())
+    elif not isinstance(text, str):
+        text = str(text)
     return text.replace("{{", "{ {").replace("}}", "} }")
 
 

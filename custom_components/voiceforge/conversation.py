@@ -11,6 +11,7 @@ from homeassistant.components.conversation import (
     ConversationInput,
     ConversationResult,
 )
+from homeassistant.const import MATCH_ALL
 from homeassistant.helpers import intent as ha_intent
 
 from .character_manager import CharacterCard, CharacterManager
@@ -73,8 +74,8 @@ class VoiceForgeConversationAgent(ConversationEntity):
         return "VoiceForge"
 
     @property
-    def supported_languages(self) -> list[str]:
-        return ["*"]
+    def supported_languages(self) -> list[str] | str:
+        return MATCH_ALL
 
     async def async_process(self, user_input: ConversationInput) -> ConversationResult:
         self._prune_idle_sessions()

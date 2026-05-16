@@ -4,6 +4,7 @@ from pathlib import Path
 
 import voluptuous as vol
 from homeassistant.components.frontend import async_remove_panel
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.components.panel_custom import async_register_panel
 from homeassistant.components.websocket_api import (
     async_register_command,
@@ -84,7 +85,8 @@ def _get_entry_data(hass: HomeAssistant) -> dict | None:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
-    await _copy_sprites(hass)
+    # Sprite copy disabled until edge device is ready to consume them.
+    # await _copy_sprites(hass)
 
     config_dir = Path(hass.config.config_dir)
 
@@ -119,7 +121,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "template_engine": template_engine,
     }
 
-    hass.http.register_static_path("/voiceforge-panel", str(_PANEL_DIR))
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig("/voiceforge-panel", str(_PANEL_DIR), False)]
+    )
     await async_register_panel(
         hass,
         webcomponent_name="voiceforge-panel",
