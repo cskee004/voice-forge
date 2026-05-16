@@ -1265,7 +1265,7 @@ VoiceForge exposes a Reload action via HA's standard config entry reload mechani
 ### Phase 6 — Polish & Ship
 - [ ] README with installation instructions
 - [ ] HACS submission requirements met
-- [ ] Test on Pi 4 with Ollama on Windows PC (target hardware)
+- [ ] Test on WSL2 Docker stack on Windows PC with native Ollama (target hardware)
 - [ ] Test character switching mid-session
 - [ ] Test memory persistence across HA restart
 - [ ] Test M5Stack sprite display end-to-end
@@ -1279,23 +1279,23 @@ This integration is designed and tested against Captain Chris's setup:
 
 | Component | Details |
 |---|---|
-| HA Host | Raspberry Pi 4, 4GB, Docker container |
+| HA Host | Docker container inside WSL2 Ubuntu-24.04 on the Windows PC (mirrored networking, native Docker Engine, not Docker Desktop) |
 | LLM Host | Windows PC, Ryzen 7 5800X, RTX 3080 |
-| LLM Endpoint | `http://[windows-pc-ip]:11434/v1` (Ollama OpenAI-compat mode) |
-| Model | `llama3.1:8b` (primary), upgrade path to larger models |
-| STT | faster-whisper on Windows PC (GPU) |
-| TTS | Piper on Pi 4 |
-| ComfyUI | Windows PC, port 8188, GPU-accelerated sprite generation |
+| LLM Endpoint | `http://192.168.1.50:11434/v1` (Ollama OpenAI-compat mode, Windows-host LAN IP from WSL) |
+| Model | `qwen2.5:14b` active in the migrated config entry; `llama3.1:8b` also available |
+| STT | faster-whisper in the WSL Docker stack, port 10300 |
+| TTS | Piper in the WSL Docker stack, port 10200 |
+| ComfyUI | Windows native, port 8188, GPU-accelerated sprite generation (offline only, not in the live pipeline) |
 | Voice Satellites | Kitchen USB mic + M5Stack CoreS3 SE (living room) |
 | M5Stack Display | CoreS3 SE, 320x240 IPS, ESPHome, shows character sprite animations |
 
-The integration must not assume HAOS — it runs in a plain Docker container. No add-on dependencies.
+The integration must not assume HAOS, it runs in a plain Docker container. No add-on dependencies.
 
-**Windows PC Docker Compose services (all running alongside each other):**
-- Frigate NVR (port 5000)
-- faster-whisper (port 10300)
-- ComfyUI (port 8188)
-- Ollama (native Windows, port 11434)
+**Stack layout inside the WSL Ubuntu distro (`~/family-hub/`):**
+- `homeassistant`, `mosquitto`, `matter-server`, `piper`, `faster-whisper`,
+  `openwakeword` (all containers, host networking)
+- Ollama and ComfyUI remain Windows-native for direct GPU access
+- Frigate runs as its own container on Windows Docker Desktop (separate stack)
 
 ---
 

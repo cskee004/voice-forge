@@ -97,6 +97,36 @@ def test_truncation_lore_trimmed_before_examples():
     assert "Hello, Dave." in output
 
 
+def test_sanitize_coerces_dict_to_key_value_pairs():
+    """YAML `- key: value` parses as a dict; _sanitize must not crash."""
+    from custom_components.voiceforge.template_engine import _sanitize
+    result = _sanitize({"role": "guardian", "voice": "calm"})
+    assert "role: guardian" in result
+    assert "voice: calm" in result
+
+
+def test_sanitize_coerces_other_non_strings():
+    from custom_components.voiceforge.template_engine import _sanitize
+    assert _sanitize(42) == "42"
+    assert _sanitize(None) == "None"
+
+
+def test_render_survives_dict_in_persona_traits():
+    """If a card field comes through as a dict (YAML quirk), render must not crash."""
+    card = _make_card({
+        "persona": {
+            "identity": "You are ARIA.",
+            "personality_traits": [
+                {"trait": "calm", "intensity": "high"},
+            ],
+            "forbidden_behaviors": [],
+        }
+    })
+    engine = TemplateEngine()
+    output = engine.render(card)
+    assert "trait: calm" in output
+
+
 def test_default_4_examples():
     # Identity padded to ~1450 tokens so base (identity+speech+4 examples)
     # exceeds the 1500-token threshold — no extra examples should be added

@@ -120,6 +120,14 @@ def test_supported_languages_not_empty():
     assert langs  # truthy — either "*" or a non-empty list
 
 
+def test_supported_languages_returns_match_all_wildcard():
+    """HA's ConversationEntity wants the MATCH_ALL string for a true wildcard."""
+    from homeassistant.const import MATCH_ALL
+    agent = _make_agent()
+    assert agent.supported_languages == MATCH_ALL
+    assert isinstance(agent.supported_languages, str)
+
+
 # ---------------------------------------------------------------------------
 # Platform setup test
 # ---------------------------------------------------------------------------

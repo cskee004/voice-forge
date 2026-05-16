@@ -62,6 +62,13 @@ _core_stub = MagicMock()
 _core_stub.HomeAssistant = MagicMock
 
 # ---------------------------------------------------------------------------
+# Stub homeassistant.const — MATCH_ALL is the wildcard sentinel for entity props
+# ---------------------------------------------------------------------------
+
+_const_stub = MagicMock()
+_const_stub.MATCH_ALL = "*"
+
+# ---------------------------------------------------------------------------
 # Stub homeassistant.helpers.intent
 # ---------------------------------------------------------------------------
 
@@ -80,10 +87,12 @@ _ha = MagicMock()
 _ha.config_entries = _config_entries_stub
 _ha.core = _core_stub
 _ha.helpers = _helpers_stub
+_ha.const = _const_stub
 
 sys.modules["homeassistant"] = _ha
 sys.modules["homeassistant.config_entries"] = _config_entries_stub
 sys.modules["homeassistant.core"] = _core_stub
+sys.modules["homeassistant.const"] = _const_stub
 sys.modules["homeassistant.helpers"] = _helpers_stub
 sys.modules["homeassistant.helpers.intent"] = _intent_stub
 
@@ -111,6 +120,20 @@ _conv_mod.ConversationInput = _ConversationInput
 _conv_mod.ConversationResult = _ConversationResult
 sys.modules["homeassistant.components"] = MagicMock()
 sys.modules["homeassistant.components.conversation"] = _conv_mod
+
+# ---------------------------------------------------------------------------
+# Stub homeassistant.components.http — StaticPathConfig is a small dataclass
+# ---------------------------------------------------------------------------
+
+class _StaticPathConfig:
+    def __init__(self, url_path: str, path: str, cache: bool):
+        self.url_path = url_path
+        self.path = path
+        self.cache = cache
+
+_http_stub = MagicMock()
+_http_stub.StaticPathConfig = _StaticPathConfig
+sys.modules["homeassistant.components.http"] = _http_stub
 
 # ---------------------------------------------------------------------------
 # Stub homeassistant.components.panel_custom

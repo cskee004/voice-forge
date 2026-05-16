@@ -68,7 +68,7 @@ Before every `git commit`, run the session stats script to update the README bad
 # Windows (adjust log path to match your Claude Code install):
 python scripts/session_stats.py "C:\Users\chris\.claude\projects\C--code-voice-forge" docs/claude_stats.md --readme README.md
 
-# Pi / Linux:
+# Linux / WSL:
 python scripts/session_stats.py "$HOME/.claude/projects/$(basename $(pwd))" docs/claude_stats.md --readme README.md
 ```
 
@@ -81,21 +81,32 @@ The script reads Claude Code session logs, generates `docs/claude_stats.md`, and
 
 ---
 
-## Deployment (Pi / HA)
+## Deployment (WSL2 Docker on PC)
 
-Copy component to HA and restart:
+HA runs in a Docker container inside a WSL2 Ubuntu-24.04 distro on the user's PC.
+The family-hub stack lives at `~/family-hub/` inside that distro. Deploy + restart:
+
 ```bash
-cp -r custom_components/voiceforge ~/homeassistant/custom_components/
-ha core restart                          # HA supervised
-# or: sudo systemctl restart home-assistant@homeassistant
+wsl -d Ubuntu-24.04 -- bash -c '
+  rsync -a --delete --exclude=__pycache__ \
+    /mnt/c/code/voice-forge/custom_components/voiceforge/ \
+    ~/family-hub/homeassistant/custom_components/voiceforge/ &&
+  docker restart homeassistant
+'
 ```
 
 View live logs:
 ```bash
-journalctl -fu home-assistant@homeassistant
-# or tail directly:
-tail -f ~/homeassistant/home-assistant.log
+wsl -d Ubuntu-24.04 -- tail -f ~/family-hub/homeassistant/home-assistant.log
 ```
+
+Notes:
+- Runtime data (`memory/`, `messages.json`) lives at `~/family-hub/homeassistant/voiceforge/`
+  (different path from the integration code) and survives redeploys.
+- The migrated config entry (entry_id `01KR8XX84FXH09DNWJB8BW7S1W`) is persisted in
+  `.storage/core.config_entries`, so reinstalls do not require re-running the config flow.
+- HA 2026.5+ raises on blocking I/O during `async_setup_entry`. All file reads, scandirs,
+  and the `AsyncOpenAI` ctor must run via `hass.async_add_executor_job(...)`.
 
 ---
 

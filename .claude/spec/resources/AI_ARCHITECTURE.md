@@ -255,7 +255,7 @@ Display surfaces subscribe (kiosk WebSocket, M5Stack ESPHome API)
 
 2. **LLM calls are always async** — `llm_client.complete()` uses `AsyncOpenAI`. Never call a synchronous HTTP client from `async_process()`. Never block the HA event loop.
 
-3. **File I/O is always in executor** — All JSON reads/writes use `asyncio.get_running_loop().run_in_executor(None, ...)`. SD card I/O on Pi 4 can take 10-50ms — enough to block HA.
+3. **File I/O is always in executor** — All file reads, writes, mkdirs, scandirs, and any sync constructor that touches the filesystem (e.g. `AsyncOpenAI`'s SSL cacert load) must run via `hass.async_add_executor_job(...)` or `asyncio.get_running_loop().run_in_executor(None, ...)`. HA 2026.5+ raises on blocking I/O detected inside the event loop, which propagates out of `async_setup_entry` and crashes the integration (and, under Docker with `restart: unless-stopped`, can put the container into a s6 restart loop).
 
 4. **Memory is enhancement, not requirement** — If `memory_manager` fails at any point, log a warning and continue. The conversation still returns. Characters work without memory.
 

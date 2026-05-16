@@ -4,9 +4,9 @@ Great question. Let me walk through the full chain from wake word to spoken resp
 
 1. **Wake word** — The CoreS3 SE listens locally using micro_wake_word (runs on the ESP32-S3 itself, no network needed). When it hears "okay nabu" or "hey jarvis," it triggers the voice assistant.
 
-2. **Audio capture** — The ES7210 mic captures your voice command as 16-bit 16kHz PCM. The CoreS3 sends this raw audio stream over the **HA native API** (the encrypted websocket connection on port 6053) to Home Assistant on your Pi.
+2. **Audio capture** — The ES7210 mic captures your voice command as 16-bit 16kHz PCM. The CoreS3 sends this raw audio stream over the **HA native API** (the encrypted websocket connection on port 6053) to Home Assistant.
 
-3. **Speech-to-Text (STT)** — HA receives the audio and sends it to whatever STT engine you've configured in your voice assistant pipeline. This could be Whisper running locally (on the Pi, your PC, or as an add-on), or a cloud service. HA converts your speech to text.
+3. **Speech-to-Text (STT)** — HA receives the audio and sends it to whatever STT engine you've configured in your voice assistant pipeline. This could be Whisper running locally (on the HA host, your PC, or as an add-on), or a cloud service. HA converts your speech to text.
 
 4. **Conversation agent / LLM** — This is where your local LLM comes in. HA takes the transcribed text and sends it to the conversation agent configured in your voice pipeline. If you're running Ollama on your PC (192.168.1.50), HA makes an HTTP request to Ollama's API (typically port 11434) with the text prompt. Ollama runs inference on your RTX 3080 and returns a text response.
 
@@ -14,7 +14,7 @@ Great question. Let me walk through the full chain from wake word to spoken resp
 
 6. **Audio playback** — Since your config uses `media_player`, HA hosts that audio file on its internal web server and sends the URL back to the CoreS3 over the native API. The CoreS3 downloads the file, decodes it, and sends PCM data through I2S to the aw88298 amp. This is the step that's broken for you right now.
 
-**The key thing:** your PC running the LLM never talks to the CoreS3 directly. Everything is brokered through Home Assistant on the Pi. The CoreS3 only knows about HA.
+**The key thing:** your PC running the LLM never talks to the CoreS3 directly. Everything is brokered through Home Assistant. The CoreS3 only knows about HA.
 
 **How to watch it happen:**
 
