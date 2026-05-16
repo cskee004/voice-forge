@@ -37,6 +37,10 @@ def _make_hass(config_dir: Path) -> MagicMock:
     hass.config_entries.async_unload_platforms = AsyncMock(return_value=True)
     hass.http = MagicMock()
     hass.http.async_register_static_paths = AsyncMock(return_value=None)
+
+    async def _run_executor(func, *args):
+        return func(*args)
+    hass.async_add_executor_job = AsyncMock(side_effect=_run_executor)
     return hass
 
 
@@ -163,6 +167,31 @@ async def test_copy_runs_in_executor(tmp_path):
 # ---------------------------------------------------------------------------
 # Manager wiring tests
 # ---------------------------------------------------------------------------
+
+async def test_setup_runs_blocking_construction_in_executor(tmp_path):
+    """LLMClient ctor (blocking SSL load) and CharacterManager load_all (blocking
+    file I/O) must run in the executor. HA 2026.5.x raises on blocking calls
+    inside async_setup_entry, which previously crash-looped the container."""
+    hass = _make_hass(tmp_path)
+
+    mocks = {t.split(".")[-1]: MagicMock() for t in _MANAGER_PATCH_TARGETS}
+    patches = [patch(t, mocks[t.split(".")[-1]]) for t in _MANAGER_PATCH_TARGETS]
+    for p in patches:
+        p.start()
+    try:
+        with patch("custom_components.voiceforge._SPRITE_SRC", tmp_path / "no_sprites"):
+            await async_setup_entry(hass, _make_entry())
+    finally:
+        for p in patches:
+            p.stop()
+
+    targets = [call.args[0] for call in hass.async_add_executor_job.call_args_list]
+    target_names = {getattr(t, "__name__", None) or getattr(t, "_mock_name", "?") for t in targets}
+    # LLMClient construction must be wrapped (mock identity-equal to the patched class)
+    assert mocks["LLMClient"] in targets, "LLMClient construction must be wrapped in executor"
+    # CharacterManager load is wrapped via the _build_character_manager helper
+    assert "_build_character_manager" in target_names, "CharacterManager load_all must run via _build_character_manager helper in executor"
+
 
 async def test_setup_stores_all_managers_in_hass_data(tmp_path):
     hass = _make_hass(tmp_path)

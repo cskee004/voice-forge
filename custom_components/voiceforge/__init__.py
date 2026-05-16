@@ -83,6 +83,19 @@ def _get_entry_data(hass: HomeAssistant) -> dict | None:
     return None
 
 
+def _build_character_manager(directory: str, active_id: str) -> CharacterManager:
+    """Construct + load + activate a CharacterManager. Runs on a worker thread
+    so the YAML scan and reads stay off HA's event loop."""
+    mgr = CharacterManager(directory)
+    mgr.load_all()
+    mgr.switch_character(active_id)
+    return mgr
+
+
+def _ensure_dir(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     # Sprite copy disabled until edge device is ready to consume them.
@@ -90,23 +103,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     config_dir = Path(hass.config.config_dir)
 
-    llm_client = LLMClient(
-        endpoint=entry.data.get(CONF_ENDPOINT, DEFAULT_ENDPOINT),
-        model=entry.data.get(CONF_MODEL, DEFAULT_MODEL),
-        api_key=entry.data.get(CONF_API_KEY, DEFAULT_API_KEY),
+    # AsyncOpenAI constructor loads SSL certs (blocking) — must run off the event loop.
+    llm_client = await hass.async_add_executor_job(
+        LLMClient,
+        entry.data.get(CONF_ENDPOINT, DEFAULT_ENDPOINT),
+        entry.data.get(CONF_MODEL, DEFAULT_MODEL),
+        entry.data.get(CONF_API_KEY, DEFAULT_API_KEY),
     )
 
     characters_dir = Path(__file__).parent / CHARACTERS_DIR
-    character_manager = CharacterManager(str(characters_dir))
-    character_manager.load_all()
-    character_manager.switch_character(entry.data.get(CONF_ACTIVE_CHARACTER, "aria"))
+    character_manager = await hass.async_add_executor_job(
+        _build_character_manager,
+        str(characters_dir),
+        entry.data.get(CONF_ACTIVE_CHARACTER, "aria"),
+    )
 
     memory_dir = config_dir / MEMORY_DIR
-    memory_dir.mkdir(parents=True, exist_ok=True)
+    await hass.async_add_executor_job(_ensure_dir, memory_dir)
     memory_manager = MemoryManager(str(memory_dir), llm_client)
 
     messages_file = config_dir / MESSAGES_FILE
-    messages_file.parent.mkdir(parents=True, exist_ok=True)
+    await hass.async_add_executor_job(_ensure_dir, messages_file.parent)
     message_manager = MessageManager(str(messages_file), llm_client)
 
     sprite_manager = SpriteManager(hass=hass)
