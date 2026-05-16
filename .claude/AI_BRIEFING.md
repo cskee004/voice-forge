@@ -119,12 +119,12 @@ Each character card defines a `guardrail_response` block — how that character 
 
 | Component | Details |
 |---|---|
-| HA Host | Raspberry Pi 4, 4GB, Docker container |
+| HA Host | Docker container inside WSL2 Ubuntu-24.04 on the Windows PC (mirrored networking) |
 | LLM + STT + ComfyUI | Windows PC, Ryzen 7 5800X, RTX 3080 |
-| LLM | Ollama, `llama3.1:8b`, port 11434 |
-| STT | faster-whisper, GPU-accelerated, port 10300 |
-| Sprite Generation | ComfyUI, Docker, port 8188 |
-| TTS | Piper, Pi 4 |
+| LLM | Ollama (Windows native for GPU access), `qwen2.5:14b` active + `llama3.1:8b`, port 11434 |
+| STT | faster-whisper, GPU-accelerated, in the WSL Docker stack, port 10300 |
+| Sprite Generation | ComfyUI, Windows native, port 8188 (offline use by `scripts/generate_sprites.py`) |
+| TTS | Piper, in the WSL Docker stack, port 10200 |
 | Kiosk Display | 27" touchscreen, kitchen wall mount |
 | Living Room Display | M5Stack CoreS3 SE, 320x240 IPS, ESPHome |
 

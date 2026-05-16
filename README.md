@@ -5,7 +5,7 @@
 <!-- CLAUDE_STATS_START -->
 #### Claude Code Stats
 
-![sessions: 8](https://img.shields.io/badge/sessions-8-1a1b27?style=for-the-badge&logo=anthropic&logoColor=white) ![API calls: 1,856](https://img.shields.io/badge/API%20calls-1%2C856-7aa2f7?style=for-the-badge&logo=anthropic&logoColor=white) ![tokens: 189.1M](https://img.shields.io/badge/tokens-189.1M-bb9af7?style=for-the-badge&logo=anthropic&logoColor=white) ![thinking time: 7.8m](https://img.shields.io/badge/thinking%20time-7.8m-7dcfff?style=for-the-badge&logo=anthropic&logoColor=white) ![wall clock: 31.7h](https://img.shields.io/badge/wall%20clock-31.7h-3d59a1?style=for-the-badge&logo=anthropic&logoColor=white) ![est. cost: $93.53](https://img.shields.io/badge/est.%20cost-%2493.53-73daca?style=for-the-badge&logo=anthropic&logoColor=white)
+![sessions: 8](https://img.shields.io/badge/sessions-8-1a1b27?style=for-the-badge&logo=anthropic&logoColor=white) ![API calls: 1,934](https://img.shields.io/badge/API%20calls-1%2C934-7aa2f7?style=for-the-badge&logo=anthropic&logoColor=white) ![tokens: 205.5M](https://img.shields.io/badge/tokens-205.5M-bb9af7?style=for-the-badge&logo=anthropic&logoColor=white) ![thinking time: 8.9m](https://img.shields.io/badge/thinking%20time-8.9m-7dcfff?style=for-the-badge&logo=anthropic&logoColor=white) ![wall clock: 38.7h](https://img.shields.io/badge/wall%20clock-38.7h-3d59a1?style=for-the-badge&logo=anthropic&logoColor=white) ![est. cost: $102.75](https://img.shields.io/badge/est.%20cost-%24102.75-73daca?style=for-the-badge&logo=anthropic&logoColor=white)
 <!-- CLAUDE_STATS_END -->
 
 ---

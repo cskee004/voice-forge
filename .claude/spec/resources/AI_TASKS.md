@@ -144,7 +144,7 @@ Work in this order. TDD throughout — test first, watch it fail, then implement
 
 - **README** — Installation, HACS setup, Ollama config, first character selection, memory privacy note, M5Stack v1.1 note.
 
-- **Hardware validation gate** — Manual test on Pi 4 + Ollama on Windows PC: clean install, all four characters in-character, memory persists across restart, safety classifier fires, character switching works.
+- **Hardware validation gate** — Manual test on WSL2 Ubuntu Docker stack on the Windows PC with native Ollama: clean install, all four characters in-character, memory persists across restart, safety classifier fires, character switching works.
 
 - **HACS submission prep** — Verify manifest.json, hacs.json, README, version tags, issue tracker URL filled in.
 
